@@ -15,6 +15,7 @@ dist-ssr
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/mcp.json
 .idea
 .DS_Store
 *.suo
@@ -25,3 +26,8 @@ dist-ssr
 # Environment variables
 .env
 .env.local
+
+# Python
+.venv
+__pycache__/
+*.py[cod]

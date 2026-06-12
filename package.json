@@ -6,27 +6,18 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:web\"",
     "dev:web": "vite",
-    "dev:server": "node server/index.js",
+    "dev:server": "python -m uvicorn backend.api:app --reload --port 3001",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "setup:foundry": "node scripts/setup-foundry-iq.js",
-    "mcp": "node mcp-server/index.js"
+    "setup:foundry": "python scripts/setup_foundry_iq.py",
+    "mcp": "python -m backend.mcp_server"
   },
   "dependencies": {
-    "@azure/core-auth": "^1.9.0",
-    "@azure/identity": "^4.10.0",
-    "@azure/search-documents": "12.3.0-beta.1",
-    "@modelcontextprotocol/sdk": "^1.12.1",
     "@tailwindcss/vite": "^4.3.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "openai": "^4.104.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "tailwindcss": "^4.3.0",
-    "zod": "^3.25.67"
+    "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

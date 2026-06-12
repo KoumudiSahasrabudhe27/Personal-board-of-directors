@@ -1,5 +1,5 @@
-import personas from '../agents/personas';
 import PageBackground from '../components/PageBackground';
+import usePersonas from '../hooks/usePersonas';
 
 const STEPS = [
   {
@@ -17,6 +17,8 @@ const STEPS = [
 ];
 
 const LandingPage = ({ onStart }) => {
+  const { personas } = usePersonas();
+
   return (
     <div className="landing">
       <PageBackground />

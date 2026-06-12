@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "board-of-directors": {
+      "command": "python",
+      "args": ["-m", "backend.mcp_server"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}

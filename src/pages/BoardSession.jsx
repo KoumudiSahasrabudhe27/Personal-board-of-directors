@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import personas from '../agents/personas';
+import usePersonas from '../hooks/usePersonas';
 import QuestionInput from '../components/QuestionInput';
 import PersonaCard from '../components/PersonaCard';
 import ModeratorPanel from '../components/ModeratorPanel';
@@ -9,6 +9,7 @@ import PageBackground from '../components/PageBackground';
 import HomeLink from '../components/HomeLink';
 
 const BoardSession = ({ onBack }) => {
+  const { personas } = usePersonas();
   const [responses, setResponses] = useState({});
   const [isLoadingPersonas, setIsLoadingPersonas] = useState(false);
   const [moderatorSummary, setModeratorSummary] = useState('');

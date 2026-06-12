@@ -7,27 +7,27 @@ Built for the [Microsoft IQ Series](https://github.com/microsoft/iq-series) — 
 ## Architecture
 
 ```
-React UI (src/)  →  Express API (server/)  →  Board orchestrator (shared/)
+React UI (src/)  →  FastAPI (backend/api.py)  →  board orchestrator (backend/)
                                               ↓
                                     Foundry IQ (Azure AI Search KB)
                                               ↓
                                     Azure OpenAI (6 personas + Moderator)
 
-GitHub Copilot  →  MCP server (mcp-server/)  →  same board orchestrator
+GitHub Copilot  →  MCP server (backend/mcp_server.py)  →  same orchestrator
                 →  Foundry IQ MCP endpoint (optional, .vscode/mcp.json)
 ```
 
 | Layer | Role |
 |-------|------|
 | **src/** | Landing page + board session UI |
-| **server/** | REST API (`POST /api/board`) |
-| **shared/** | Personas, LLM client, Foundry IQ memory, orchestration |
-| **mcp-server/** | MCP tools for Copilot (`run_board`, `search_memory`, …) |
+| **backend/** | Personas, LLM client, Foundry IQ memory, orchestration, API, MCP |
+| **scripts/** | Foundry IQ provisioning (`setup_foundry_iq.py`) |
 | **Foundry IQ** | RAG — stores and retrieves past decision sessions |
 
 ## Prerequisites
 
-- **Node.js 20+**
+- **Python 3.11+**
+- **Node.js 20+** (React UI only)
 - **Azure subscription** with permissions to create resources
 - **Azure CLI** — run `az login` before setup
 - Region supporting [agentic retrieval](https://learn.microsoft.com/azure/search/search-region-support) (e.g. `eastus2`)
@@ -60,10 +60,18 @@ KNOWLEDGE_BASE_NAME=board-decisions-kb
 
 If using `az login` instead of keys, omit `SEARCH_API_KEY` and `AOAI_API_KEY` — the app uses `DefaultAzureCredential`.
 
-## 3. Create Foundry IQ knowledge base for the board
+## 3. Install dependencies
 
 ```bash
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
 npm install
+```
+
+## 4. Create Foundry IQ knowledge base for the board
+
+```bash
 npm run setup:foundry
 ```
 
@@ -73,7 +81,7 @@ This creates:
 - Knowledge source + **Foundry IQ knowledge base** `board-decisions-kb`
 - One seed decision for demo retrieval
 
-## 4. Run the app
+## 5. Run the app
 
 ```bash
 npm run dev
@@ -92,10 +100,10 @@ Enable **board-of-directors** in Copilot Chat → Tools. Available tools:
 
 | Tool | Description |
 |------|-------------|
-| `run_board` | Full session with Foundry IQ memory |
-| `ask_persona` | Single advisor |
-| `search_memory` | Query Foundry IQ |
-| `list_memory` | Recent sessions |
+| `run_board_tool` | Full session with Foundry IQ memory |
+| `ask_persona_tool` | Single advisor |
+| `search_memory_tool` | Query Foundry IQ |
+| `list_memory_tool` | Recent sessions |
 
 Example: *"Run my board on whether I should relocate for work"*
 
@@ -111,7 +119,7 @@ https://<search-service>.search.windows.net/knowledgebases/board-decisions-kb/mc
 
 1. **First question:** *"Should I quit my stable job for a startup?"* → board deliberates → verdict saved to Foundry IQ
 2. **Second question:** *"A startup just offered me equity — should I take it?"* → show **Past decisions referenced** panel
-3. **Copilot:** call `run_board` or `search_memory` to show MCP orchestration
+3. **Copilot:** call `run_board_tool` or `search_memory_tool` to show MCP orchestration
 
 **Pitch:** MCP exposes persona tools. Foundry IQ gives them memory. Copilot orchestrates agents that remember your life decisions.
 
