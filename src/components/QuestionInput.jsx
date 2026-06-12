@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 
-const QuestionInput = ({ onSubmit, isLoading = false }) => {
+const QuestionInput = ({ onSubmit, isLoading = false, onHome }) => {
   const [question, setQuestion] = useState('');
   const textareaRef = useRef(null);
 
@@ -19,71 +19,77 @@ const QuestionInput = ({ onSubmit, isLoading = false }) => {
     }
   };
 
-  const outer = {
-    position: 'fixed',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: '#F8FAFC',
-    padding: '18px 20px',
-    boxShadow: '0 -6px 24px rgba(12,18,30,0.06)'
-  };
-
-  const inner = {
-    maxWidth: 1100,
-    margin: '0 auto',
-    display: 'flex',
-    gap: 12,
-    alignItems: 'flex-end'
-  };
-
-  const textareaStyle = {
-    flex: 1,
-    minHeight: 56,
-    maxHeight: 220,
-    borderRadius: 12,
-    border: '1px solid rgba(15,23,42,0.06)',
-    padding: '12px 14px',
-    fontSize: 15,
-    fontFamily: 'inherit',
-    outline: 'none',
-    resize: 'vertical'
-  };
-
-  const buttonStyle = {
-    background: isLoading ? '#A78BFA' : '#4F46E5',
-    color: '#FFFFFF',
-    border: 'none',
-    padding: '12px 16px',
-    borderRadius: 10,
-    fontWeight: 600,
-    cursor: isLoading ? 'not-allowed' : 'pointer',
-    boxShadow: '0 6px 18px rgba(79,70,229,0.12)'
-  };
+  const canSubmit = !isLoading && question.trim() !== '';
 
   return (
-    <div style={outer}>
-      <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} style={inner}>
-        <textarea
-          ref={textareaRef}
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="What decision are you facing today?"
-          disabled={isLoading}
-          style={textareaStyle}
-          aria-label="Ask the board"
-        />
-
-        <button
-          type="button"
-          onClick={() => handleSubmit()}
-          disabled={isLoading || question.trim() === ''}
-          style={buttonStyle}
+    <div className="question-bar">
+      <div className="question-bar__container">
+        <form
+          className="question-bar__inner"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
         >
-          {isLoading ? 'Thinking...' : 'Ask the Board'}
-        </button>
-      </form>
+          <div className="question-bar__toolbar">
+            <label className="question-bar__label" htmlFor="board-question">
+              Submit to the board
+            </label>
+            {onHome && (
+              <button type="button" className="question-bar__home" onClick={onHome}>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path
+                    d="M2.5 6.5L8 2l5.5 4.5V13a1 1 0 01-1 1h-3.5v-4H7v4H3.5a1 1 0 01-1-1V6.5z"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Home
+              </button>
+            )}
+          </div>
+
+          <div className="question-bar__row">
+            <div className="question-bar__field">
+              <textarea
+                id="board-question"
+                ref={textareaRef}
+                className="question-bar__textarea"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Describe the decision or dilemma you need counsel on…"
+                disabled={isLoading}
+                rows={2}
+              />
+              <span className="question-bar__hint">
+                <kbd>Enter</kbd> to submit · <kbd>Shift</kbd>+<kbd>Enter</kbd> for new line
+              </span>
+            </div>
+
+            <button
+              type="submit"
+              className="question-bar__btn"
+              disabled={!canSubmit}
+            >
+              {isLoading ? (
+                <>
+                  <span className="question-bar__spinner" aria-hidden />
+                  Processing
+                </>
+              ) : (
+                <>
+                  Convene Board
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

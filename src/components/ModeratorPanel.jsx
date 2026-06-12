@@ -1,24 +1,54 @@
-import React from 'react';
+import { useState } from 'react';
 
 const ModeratorPanel = ({ summary, isLoading }) => {
+  const [copied, setCopied] = useState(false);
+
   if (!isLoading && !summary) return null;
 
+  const handleCopy = async () => {
+    if (!summary) return;
+    try {
+      await navigator.clipboard.writeText(summary);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
+
   return (
-    <div style={{ maxWidth: 1100, margin: '18px auto', padding: '0 20px' }}>
-      <div style={{ color: '#C4B5FF', fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Board's Verdict</div>
+    <section className="verdict" aria-labelledby="verdict-heading">
+      <div className="verdict__header">
+        <div>
+          <p className="verdict__eyebrow">Moderator synthesis</p>
+          <h2 id="verdict-heading" className="verdict__title">Board Verdict</h2>
+        </div>
+        {!isLoading && summary && (
+          <button
+            type="button"
+            className={`verdict__copy-btn${copied ? ' verdict__copy-btn--copied' : ''}`}
+            onClick={handleCopy}
+          >
+            {copied ? 'Copied to clipboard' : 'Copy verdict'}
+          </button>
+        )}
+      </div>
 
       {isLoading ? (
-        <div style={{ background: '#fff', borderRadius: 12, padding: 18, boxShadow: '0 6px 18px rgba(12,18,30,0.06)' }}>
-          <div style={{ height: 12, background: '#F1F5F9', borderRadius: 6, width: '40%', marginBottom: 10 }} />
-          <div style={{ height: 12, background: '#F1F5F9', borderRadius: 6, width: '92%', marginBottom: 10 }} />
-          <div style={{ height: 12, background: '#F1F5F9', borderRadius: 6, width: '76%', marginBottom: 10 }} />
+        <div className="verdict__skeleton" aria-label="Loading verdict">
+          <div className="skeleton">
+            <div className="skeleton__bar" style={{ width: '35%' }} />
+            <div className="skeleton__bar" style={{ width: '95%' }} />
+            <div className="skeleton__bar" style={{ width: '82%' }} />
+            <div className="skeleton__bar" style={{ width: '68%' }} />
+          </div>
         </div>
       ) : (
-        <div style={{ background: '#3C3489', color: '#FFFFFF', padding: '18px 20px', borderRadius: 14, boxShadow: '0 10px 30px rgba(60,48,137,0.18)', fontSize: 15, lineHeight: 1.6 }}>
-          <div style={{ whiteSpace: 'pre-wrap' }}>{summary}</div>
+        <div className="verdict__body">
+          <p className="verdict__text">{summary}</p>
         </div>
       )}
-    </div>
+    </section>
   );
 };
 
