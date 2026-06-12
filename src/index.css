@@ -1424,3 +1424,86 @@ kbd {
     align-items: flex-start;
   }
 }
+
+/* ── Foundry IQ memory panel ── */
+
+.memory-panel {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.memory-panel__header {
+  margin-bottom: 0.85rem;
+}
+
+.memory-panel__eyebrow {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-bright);
+}
+
+.memory-panel__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.memory-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.memory-panel__item {
+  padding: 0.85rem 1rem;
+  background: var(--surface-muted);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--accent-bright);
+}
+
+.memory-panel__question {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--text);
+}
+
+.memory-panel__verdict {
+  margin: 0 0 0.35rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.memory-panel__date {
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+}
+
+.app-error {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius);
+  color: #991b1b;
+  font-size: 0.875rem;
+}
+
+.app-error code {
+  font-size: 0.8125rem;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}

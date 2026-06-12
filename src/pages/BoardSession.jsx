@@ -3,16 +3,10 @@ import personas from '../agents/personas';
 import QuestionInput from '../components/QuestionInput';
 import PersonaCard from '../components/PersonaCard';
 import ModeratorPanel from '../components/ModeratorPanel';
+import MemoryPanel from '../components/MemoryPanel';
 import BoardProgress from '../components/BoardProgress';
 import PageBackground from '../components/PageBackground';
 import HomeLink from '../components/HomeLink';
-
-const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
-
-function extractTextFromAnthropic(data) {
-  if (data?.content?.[0]?.text) return data.content[0].text;
-  return 'No response received.';
-}
 
 const BoardSession = ({ onBack }) => {
   const [responses, setResponses] = useState({});
@@ -21,79 +15,41 @@ const BoardSession = ({ onBack }) => {
   const [isLoadingModerator, setIsLoadingModerator] = useState(false);
   const [lastQuestion, setLastQuestion] = useState('');
   const [focusedId, setFocusedId] = useState(null);
-
-  const anthKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-
-  const callAnthropic = async (systemPrompt, userMessage) => {
-    const res = await fetch(ANTHROPIC_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userMessage }],
-        max_tokens: 300
-      })
-    });
-    const data = await res.json();
-    return extractTextFromAnthropic(data).trim();
-  };
+  const [memoriesUsed, setMemoriesUsed] = useState([]);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (q) => {
     setResponses({});
     setModeratorSummary('');
+    setMemoriesUsed([]);
+    setError('');
     setLastQuestion(q);
     setFocusedId(null);
     setIsLoadingPersonas(true);
 
-    if (!anthKey) {
-      setIsLoadingPersonas(false);
-      alert('Missing Anthropic API key. Set VITE_ANTHROPIC_API_KEY in your .env file.');
-      return;
-    }
-
     try {
-      const results = await Promise.all(
-        personas.map(async (p) => {
-          try {
-            const text = await callAnthropic(p.systemPrompt, q);
-            return { id: p.id, text };
-          } catch (err) {
-            return { id: p.id, text: `Error: ${err.message}` };
-          }
-        })
-      );
+      const res = await fetch('/api/board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: q })
+      });
 
-      const newResponses = results.reduce((acc, r) => {
-        acc[r.id] = r.text;
-        return acc;
-      }, {});
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Board request failed');
 
-      setResponses(newResponses);
+      setResponses(data.responses);
+      setMemoriesUsed(data.memoriesUsed || []);
       setIsLoadingPersonas(false);
       setIsLoadingModerator(true);
 
-      const combined = personas
-        .map((p) => `--- ${p.name} (${p.title}):\n${newResponses[p.id] || ''}`)
-        .join('\n\n');
-
-      const modText = await callAnthropic(
-        'You are the Moderator. Synthesize the six advisors responses into one clear recommendation in 3-4 sentences. Summarize trade-offs and give one clear next step.',
-        `User question: ${q}\n\nAdvisor responses:\n${combined}`
-      );
-
-      setModeratorSummary(modText);
+      // Brief pause so verdict phase is visible in progress UI
+      setModeratorSummary(data.verdict);
       setIsLoadingModerator(false);
     } catch (err) {
       setIsLoadingPersonas(false);
       setIsLoadingModerator(false);
+      setError(err.message);
       console.error(err);
-      alert('An unexpected error occurred. See console for details.');
     }
   };
 
@@ -119,7 +75,7 @@ const BoardSession = ({ onBack }) => {
 
           <div className="session-header__center">
             <h1 className="session-header__title">Board Session</h1>
-            <p className="session-header__subtitle">Live advisory counsel</p>
+            <p className="session-header__subtitle">Live advisory counsel · Foundry IQ memory</p>
           </div>
 
           <div className="session-header__stats">
@@ -142,13 +98,20 @@ const BoardSession = ({ onBack }) => {
           <div className="session-welcome">
             <h2 className="session-welcome__title">The board is assembled</h2>
             <p className="session-welcome__text">
-              Present your decision below. Each advisor will respond independently,
-              then the Moderator will deliver a final recommendation.
+              Present your decision below. Each advisor responds independently,
+              grounded in past sessions via Foundry IQ, then the Moderator delivers
+              a final recommendation.
             </p>
           </div>
         )}
 
         <BoardProgress phase={phase} />
+
+        {error && (
+          <div className="app-error" role="alert">
+            {error}. Make sure the API server is running (<code>npm run dev</code>) and Foundry IQ is configured.
+          </div>
+        )}
 
         {lastQuestion && (
           <div className="app-question">
@@ -171,11 +134,13 @@ const BoardSession = ({ onBack }) => {
             <span className="app-status-bar__pulse" aria-hidden />
             <span>
               {isLoadingPersonas
-                ? `Board in session — collecting ${personas.length} independent perspectives`
+                ? `Retrieving Foundry IQ memory · collecting ${personas.length} perspectives`
                 : 'Moderator synthesizing final recommendation'}
             </span>
           </div>
         )}
+
+        <MemoryPanel memories={memoriesUsed} isLoading={isLoadingPersonas && hasSession} />
 
         <section className="persona-grid" aria-live="polite">
           {personas.map((p, i) => (

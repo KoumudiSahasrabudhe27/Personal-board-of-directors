@@ -1,16 +1,126 @@
-# React + Vite
+# Personal Board of Directors
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Six AI advisors debate your life decisions. A Moderator synthesizes one clear recommendation. **Foundry IQ** gives the board persistent memory of every past session.
 
-Currently, two official plugins are available:
+Built for the [Microsoft IQ Series](https://github.com/microsoft/iq-series) — uses [Foundry IQ](https://learn.microsoft.com/azure/foundry/agents/concepts/what-is-foundry-iq) as the managed knowledge layer.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Architecture
 
-## React Compiler
+```
+React UI (src/)  →  Express API (server/)  →  Board orchestrator (shared/)
+                                              ↓
+                                    Foundry IQ (Azure AI Search KB)
+                                              ↓
+                                    Azure OpenAI (6 personas + Moderator)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+GitHub Copilot  →  MCP server (mcp-server/)  →  same board orchestrator
+                →  Foundry IQ MCP endpoint (optional, .vscode/mcp.json)
+```
 
-## Expanding the ESLint configuration
+| Layer | Role |
+|-------|------|
+| **src/** | Landing page + board session UI |
+| **server/** | REST API (`POST /api/board`) |
+| **shared/** | Personas, LLM client, Foundry IQ memory, orchestration |
+| **mcp-server/** | MCP tools for Copilot (`run_board`, `search_memory`, …) |
+| **Foundry IQ** | RAG — stores and retrieves past decision sessions |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Prerequisites
+
+- **Node.js 20+**
+- **Azure subscription** with permissions to create resources
+- **Azure CLI** — run `az login` before setup
+- Region supporting [agentic retrieval](https://learn.microsoft.com/azure/search/search-region-support) (e.g. `eastus2`)
+
+## 1. Deploy Azure resources (IQ Series)
+
+Use the official [IQ Series deploy button](https://aka.ms/iq-series/deploytoazure) from [microsoft/iq-series](https://github.com/microsoft/iq-series):
+
+1. Create a resource group (e.g. `iq-series-rg`)
+2. Get your User Object ID: `az ad signed-in-user show --query id -o tsv`
+3. Deploy and copy outputs from the Azure portal **Outputs** tab
+
+Follow [Episode 1 cookbook prerequisites](https://github.com/microsoft/iq-series/tree/main/Foundry-IQ/1-Foundry-IQ-Unlocking-Knowledge-for-Agents/cookbook) if you need detail.
+
+## 2. Configure environment
+
+```bash
+cp .env.example .env
+```
+
+Fill in values from your deployment outputs:
+
+```env
+SEARCH_ENDPOINT=https://YOUR-SEARCH-SERVICE.search.windows.net
+SEARCH_API_KEY=your-key
+AOAI_ENDPOINT=https://YOUR-OPENAI-RESOURCE.openai.azure.com
+AOAI_API_KEY=your-key
+KNOWLEDGE_BASE_NAME=board-decisions-kb
+```
+
+If using `az login` instead of keys, omit `SEARCH_API_KEY` and `AOAI_API_KEY` — the app uses `DefaultAzureCredential`.
+
+## 3. Create Foundry IQ knowledge base for the board
+
+```bash
+npm install
+npm run setup:foundry
+```
+
+This creates:
+
+- Search index `board-decisions` (past sessions)
+- Knowledge source + **Foundry IQ knowledge base** `board-decisions-kb`
+- One seed decision for demo retrieval
+
+## 4. Run the app
+
+```bash
+npm run dev
+```
+
+- Web UI: http://localhost:5173
+- API: http://localhost:3001
+
+Ask a decision twice — the second session should reference the first via Foundry IQ memory.
+
+## MCP (GitHub Copilot)
+
+### Board MCP tools
+
+Enable **board-of-directors** in Copilot Chat → Tools. Available tools:
+
+| Tool | Description |
+|------|-------------|
+| `run_board` | Full session with Foundry IQ memory |
+| `ask_persona` | Single advisor |
+| `search_memory` | Query Foundry IQ |
+| `list_memory` | Recent sessions |
+
+Example: *"Run my board on whether I should relocate for work"*
+
+### Foundry IQ MCP (direct KB access)
+
+Update `.vscode/mcp.json` with your search service name and API key, then enable **foundry-iq** in Copilot Tools. Pattern from [IQ Series Episode 3](https://github.com/microsoft/iq-series/tree/main/Foundry-IQ/3-Foundry-IQ-Querying-the-Multi-Source-AI-Knowledge-Bases/cookbook):
+
+```
+https://<search-service>.search.windows.net/knowledgebases/board-decisions-kb/mcp?api-version=2025-11-01-preview
+```
+
+## Demo script for judges
+
+1. **First question:** *"Should I quit my stable job for a startup?"* → board deliberates → verdict saved to Foundry IQ
+2. **Second question:** *"A startup just offered me equity — should I take it?"* → show **Past decisions referenced** panel
+3. **Copilot:** call `run_board` or `search_memory` to show MCP orchestration
+
+**Pitch:** MCP exposes persona tools. Foundry IQ gives them memory. Copilot orchestrates agents that remember your life decisions.
+
+## Learn more
+
+- [Microsoft IQ Series](https://github.com/microsoft/iq-series)
+- [What is Foundry IQ?](https://learn.microsoft.com/azure/foundry/agents/concepts/what-is-foundry-iq)
+- [Agentic retrieval quickstart](https://learn.microsoft.com/azure/search/search-get-started-agentic-retrieval)
+
+## License
+
+MIT
