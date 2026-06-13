@@ -1,4 +1,5 @@
 import json
+from openai import AzureOpenAI
 import logging
 from typing import Any
 
