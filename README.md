@@ -355,10 +355,6 @@ http://localhost:5173
 
 <img width="1470" height="829" alt="image" src="https://github.com/user-attachments/assets/de141aa5-9991-4646-a6d8-1bdea55dff8e" />
 
-<img width="1470" height="826" alt="image" src="https://github.com/user-attachments/assets/57331068-4be8-4c33-a68c-217dfd3ec0c1" />
-
-<img width="1470" height="831" alt="image" src="https://github.com/user-attachments/assets/b771e43e-cf3c-4b1f-91b8-355c314dda4d" />
-
 
 ### Board Session
 
