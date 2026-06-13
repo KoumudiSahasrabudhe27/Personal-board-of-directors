@@ -408,15 +408,23 @@ Key technologies used:
 
 ## Author
 
-**Koumudi Ajay Sahasrabudhe**
+### Koumudi Sahasrabudhe
 
-GitHub:
-
+**GitHub:**  
 https://github.com/KoumudiSahasrabudhe27
 
-LinkedIn:
-
+**LinkedIn:**  
 https://www.linkedin.com/in/koumudi-sahasrabudhe-947417288/
+
+---
+
+### Aarush Kumawat
+
+**GitHub:**  
+https://github.com/AarushKumawat
+
+**LinkedIn:**  
+https://www.linkedin.com/in/aarush-kumawat-b048122b8/
 
 ---
 
