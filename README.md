@@ -1,134 +1,428 @@
 # Personal Board of Directors
 
-Six AI advisors debate your life decisions. A Moderator synthesizes one clear recommendation. **Foundry IQ** gives the board persistent memory of every past session.
+> Six AI advisors. One informed decision.
 
-Built for the [Microsoft IQ Series](https://github.com/microsoft/iq-series) — uses [Foundry IQ](https://learn.microsoft.com/azure/foundry/agents/concepts/what-is-foundry-iq) as the managed knowledge layer.
+Personal Board of Directors is an AI-powered decision intelligence platform that helps users evaluate important life and career decisions through multiple perspectives.
 
-## Architecture
+Instead of relying on a single AI response, the system simulates a boardroom of six advisors, each representing a unique way of thinking. Their perspectives are synthesized into a final recommendation, actionable next steps, and a confidence score.
 
+---
+
+## Problem Statement
+
+Important decisions are often made with incomplete information or biased viewpoints.
+
+Whether choosing between career paths, job offers, startups, higher education, investments, or personal opportunities, people typically rely on:
+
+- Their own assumptions
+- Advice from a small group of people
+- Generic AI responses
+
+This often leads to overthinking, analysis paralysis, and uncertainty.
+
+---
+
+## Solution
+
+Personal Board of Directors creates a virtual advisory board consisting of six specialized AI personas.
+
+Each advisor evaluates the same decision through a different lens:
+
+- Strategy
+- Finance
+- Technical growth
+- Mental well-being
+- Long-term experience
+- Personal happiness
+
+The platform then generates:
+
+- Independent advisor perspectives
+- Areas of agreement
+- Areas of disagreement
+- Final consensus recommendation
+- Action plan
+- Confidence score
+
+This provides users with a structured decision-making framework rather than a single answer.
+
+---
+
+## Advisor Personas
+
+### CEO
+Focuses on strategic growth, leverage, leadership, and long-term career positioning.
+
+### Investor
+Evaluates financial upside, risk, opportunity cost, and return on investment.
+
+### Engineer
+Analyzes technical depth, learning opportunities, and skill development.
+
+### Psychologist
+Considers emotional well-being, stress, burnout, motivation, and personal sustainability.
+
+### Mentor
+Provides experience-driven guidance focused on timing, growth, and long-term outcomes.
+
+### Friend
+Represents intuition, happiness, life satisfaction, and personal fulfillment.
+
+---
+
+## How It Works
+
+1. User submits a decision or dilemma.
+2. Azure OpenAI analyzes the situation.
+3. Six advisor perspectives are generated.
+4. Areas of agreement and disagreement are identified.
+5. A moderator synthesizes all viewpoints.
+6. A final recommendation is produced.
+7. The session is optionally stored in memory for future context.
+
+---
+
+## Features
+
+### Multi-Perspective Decision Intelligence
+
+Receive six distinct viewpoints for every decision.
+
+### AI Moderator
+
+Combines all advisor opinions into one coherent recommendation.
+
+### Consensus Analysis
+
+Highlights where advisors agree and where opinions differ.
+
+### Actionable Guidance
+
+Provides practical next steps rather than generic advice.
+
+### Confidence Scoring
+
+Assigns a confidence score to help evaluate recommendation strength.
+
+### Memory Support
+
+Uses previous board sessions as contextual memory for future decisions.
+
+### Modern Interactive UI
+
+Responsive React interface designed for engaging board-style discussions.
+
+### Azure OpenAI Integration
+
+Powered by Azure OpenAI and Azure AI Foundry.
+
+---
+
+## System Architecture
+
+```text
+User
+  │
+  ▼
+React Frontend
+  │
+  ▼
+FastAPI Backend
+  │
+  ▼
+Azure OpenAI (GPT-4.1 Mini)
+  │
+  ▼
+Structured Board Analysis
+  │
+  ├── CEO Perspective
+  ├── Investor Perspective
+  ├── Engineer Perspective
+  ├── Psychologist Perspective
+  ├── Mentor Perspective
+  └── Friend Perspective
+  │
+  ▼
+Consensus Recommendation
 ```
-React UI (src/)  →  FastAPI (backend/api.py)  →  board orchestrator (backend/)
-                                              ↓
-                                    Foundry IQ (Azure AI Search KB)
-                                              ↓
-                                    Azure OpenAI (6 personas + Moderator)
 
-GitHub Copilot  →  MCP server (backend/mcp_server.py)  →  same orchestrator
-                →  Foundry IQ MCP endpoint (optional, .vscode/mcp.json)
+---
+
+## Tech Stack
+
+### Frontend
+
+- React
+- Vite
+- JavaScript
+- CSS
+
+### Backend
+
+- Python
+- FastAPI
+- Pydantic
+
+### AI Layer
+
+- Azure OpenAI
+- GPT-4.1 Mini
+- Structured JSON Output
+
+### Platform
+
+- Azure AI Foundry
+- Azure AI Search (Optional)
+- Foundry Memory
+
+---
+
+## Project Structure
+
+```text
+Personal-board-of-directors
+│
+├── backend
+│   ├── api.py
+│   ├── board.py
+│   ├── azure_openai.py
+│   ├── schemas.py
+│   ├── personas.py
+│   └── foundry_iq.py
+│
+├── src
+│   ├── components
+│   ├── hooks
+│   ├── pages
+│   └── lib
+│
+├── public
+├── scripts
+├── requirements.txt
+├── package.json
+└── README.md
 ```
 
-| Layer | Role |
-|-------|------|
-| **src/** | Landing page + board session UI |
-| **backend/** | Personas, LLM client, Foundry IQ memory, orchestration, API, MCP |
-| **scripts/** | Foundry IQ provisioning (`setup_foundry_iq.py`) |
-| **Foundry IQ** | RAG — stores and retrieves past decision sessions |
+---
 
-## Prerequisites
+## Installation
 
-- **Python 3.11+**
-- **Node.js 20+** (React UI only)
-- **Azure subscription** with permissions to create resources
-- **Azure CLI** — run `az login` before setup
-- Region supporting [agentic retrieval](https://learn.microsoft.com/azure/search/search-region-support) (e.g. `eastus2`)
-
-## 1. Deploy Azure resources (IQ Series)
-
-Use the official [IQ Series deploy button](https://aka.ms/iq-series/deploytoazure) from [microsoft/iq-series](https://github.com/microsoft/iq-series):
-
-1. Create a resource group (e.g. `iq-series-rg`)
-2. Get your User Object ID: `az ad signed-in-user show --query id -o tsv`
-3. Deploy and copy outputs from the Azure portal **Outputs** tab
-
-Follow [Episode 1 cookbook prerequisites](https://github.com/microsoft/iq-series/tree/main/Foundry-IQ/1-Foundry-IQ-Unlocking-Knowledge-for-Agents/cookbook) if you need detail.
-
-## 2. Configure environment
+### Clone Repository
 
 ```bash
-cp .env.example .env
+git clone https://github.com/KoumudiSahasrabudhe27/Personal-board-of-directors.git
+
+cd Personal-board-of-directors
 ```
 
-Fill in values from your deployment outputs:
+### Backend Setup
 
-```env
-SEARCH_ENDPOINT=https://YOUR-SEARCH-SERVICE.search.windows.net
-SEARCH_API_KEY=your-key
-AOAI_ENDPOINT=https://YOUR-OPENAI-RESOURCE.openai.azure.com
-AOAI_API_KEY=your-key
-KNOWLEDGE_BASE_NAME=board-decisions-kb
-```
-
-If using `az login` instead of keys, omit `SEARCH_API_KEY` and `AOAI_API_KEY` — the app uses `DefaultAzureCredential`.
-
-## 3. Install dependencies
+Create a Python virtual environment:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+python3 -m venv .venv
+```
+
+Activate it:
+
+Mac/Linux:
+
+```bash
+source .venv/bin/activate
+```
+
+Windows:
+
+```bash
+.venv\Scripts\activate
+```
+
+Install dependencies:
+
+```bash
 pip install -r requirements.txt
+```
+
+### Frontend Setup
+
+Install Node dependencies:
+
+```bash
 npm install
 ```
 
-## 4. Create Foundry IQ knowledge base for the board
+---
 
-```bash
-npm run setup:foundry
+## Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+AZURE_OPENAI_ENDPOINT=https://YOUR-RESOURCE.openai.azure.com
+
+AZURE_OPENAI_API_KEY=YOUR_API_KEY
+
+AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+
+AZURE_OPENAI_API_VERSION=2024-10-21
 ```
 
-This creates:
+Optional Azure AI Search / Foundry Memory:
 
-- Search index `board-decisions` (past sessions)
-- Knowledge source + **Foundry IQ knowledge base** `board-decisions-kb`
-- One seed decision for demo retrieval
+```env
+SEARCH_ENDPOINT=https://YOUR-SEARCH-SERVICE.search.windows.net
 
-## 5. Run the app
+SEARCH_API_KEY=YOUR_SEARCH_KEY
+
+BOARD_INDEX_NAME=board-decisions
+
+KNOWLEDGE_BASE_NAME=board-decisions-kb
+
+BOARD_KNOWLEDGE_SOURCE=board-decisions-source
+```
+
+---
+
+## Running the Application
+
+### Start Backend
+
+```bash
+python3 -m uvicorn backend.api:app --reload --port 3001
+```
+
+Backend runs at:
+
+```text
+http://127.0.0.1:3001
+```
+
+### Start Frontend
+
+Open another terminal:
 
 ```bash
 npm run dev
 ```
 
-- Web UI: http://localhost:5173
-- API: http://localhost:3001
+Frontend runs at:
 
-Ask a decision twice — the second session should reference the first via Foundry IQ memory.
-
-## MCP (GitHub Copilot)
-
-### Board MCP tools
-
-Enable **board-of-directors** in Copilot Chat → Tools. Available tools:
-
-| Tool | Description |
-|------|-------------|
-| `run_board_tool` | Full session with Foundry IQ memory |
-| `ask_persona_tool` | Single advisor |
-| `search_memory_tool` | Query Foundry IQ |
-| `list_memory_tool` | Recent sessions |
-
-Example: *"Run my board on whether I should relocate for work"*
-
-### Foundry IQ MCP (direct KB access)
-
-Update `.vscode/mcp.json` with your search service name and API key, then enable **foundry-iq** in Copilot Tools. Pattern from [IQ Series Episode 3](https://github.com/microsoft/iq-series/tree/main/Foundry-IQ/3-Foundry-IQ-Querying-the-Multi-Source-AI-Knowledge-Bases/cookbook):
-
-```
-https://<search-service>.search.windows.net/knowledgebases/board-decisions-kb/mcp?api-version=2025-11-01-preview
+```text
+http://localhost:5173
 ```
 
-## Demo script for judges
+### Open Application
 
-1. **First question:** *"Should I quit my stable job for a startup?"* → board deliberates → verdict saved to Foundry IQ
-2. **Second question:** *"A startup just offered me equity — should I take it?"* → show **Past decisions referenced** panel
-3. **Copilot:** call `run_board_tool` or `search_memory_tool` to show MCP orchestration
+Visit:
 
-**Pitch:** MCP exposes persona tools. Foundry IQ gives them memory. Copilot orchestrates agents that remember your life decisions.
+```text
+http://localhost:5173
+```
 
-## Learn more
+---
 
-- [Microsoft IQ Series](https://github.com/microsoft/iq-series)
-- [What is Foundry IQ?](https://learn.microsoft.com/azure/foundry/agents/concepts/what-is-foundry-iq)
-- [Agentic retrieval quickstart](https://learn.microsoft.com/azure/search/search-get-started-agentic-retrieval)
+## Example Use Cases
 
-## License
+### Career Decisions
 
-MIT
+- AI Engineering vs Cybersecurity
+- Startup vs Corporate Job
+- Higher Studies vs Employment
+
+### Financial Decisions
+
+- Investment Opportunities
+- Business Expansion
+- Risk Evaluation
+
+### Personal Decisions
+
+- Relocation
+- Side Projects
+- Career Transitions
+
+### Education
+
+- Degree Selection
+- Certification Planning
+- Skill Development Roadmaps
+
+---
+
+## Screenshots
+
+### Landing Page
+
+<img width="1470" height="829" alt="image" src="https://github.com/user-attachments/assets/de141aa5-9991-4646-a6d8-1bdea55dff8e" />
+
+<img width="1470" height="826" alt="image" src="https://github.com/user-attachments/assets/57331068-4be8-4c33-a68c-217dfd3ec0c1" />
+
+<img width="1470" height="831" alt="image" src="https://github.com/user-attachments/assets/b771e43e-cf3c-4b1f-91b8-355c314dda4d" />
+
+
+### Board Session
+
+<img width="1470" height="827" alt="image" src="https://github.com/user-attachments/assets/e42750ac-e3f4-47c4-9a37-f64fdd0a7b8d" />
+
+
+### Final Recommendation
+
+Add screenshot here.
+
+---
+
+## Future Enhancements
+
+- Real multi-agent execution
+- Voice-based board meetings
+- Personalized advisor tuning
+- Team decision-making mode
+- Historical decision analytics
+- Advisor voting mechanism
+- Azure AI Agent Service integration
+- RAG-powered knowledge retrieval
+
+---
+
+## Impact
+
+Personal Board of Directors helps users:
+
+- Reduce decision paralysis
+- Evaluate choices objectively
+- Understand trade-offs clearly
+- Balance logic and emotion
+- Make more confident decisions
+
+---
+
+## Hackathon Submission
+
+Built for the Microsoft Agents League Hackathon.
+
+Key technologies used:
+
+- Azure AI Foundry
+- Azure OpenAI
+- FastAPI
+- React
+- Vite
+- Python
+
+---
+
+## Author
+
+**Koumudi Sahasrabudhe**
+
+GitHub:
+
+https://github.com/KoumudiSahasrabudhe27
+
+LinkedIn:
+
+https://www.linkedin.com/in/koumudi-sahasrabudhe-947417288/
+
+---
+
+If you found this project interesting, consider starring the repository.
