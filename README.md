@@ -408,7 +408,7 @@ Key technologies used:
 
 ## Author
 
-**Koumudi Sahasrabudhe**
+**Koumudi Ajay Sahasrabudhe**
 
 GitHub:
 
@@ -420,4 +420,4 @@ https://www.linkedin.com/in/koumudi-sahasrabudhe-947417288/
 
 ---
 
-If you found this project interesting, consider starring the repository.
+If you found this project interesting, please consider starring the repository.
