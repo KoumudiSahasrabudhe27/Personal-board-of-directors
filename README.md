@@ -42,7 +42,7 @@ The platform then generates:
 - Areas of disagreement
 - Final consensus recommendation
 - Action plan
-- Confidence score
+
 
 This provides users with a structured decision-making framework rather than a single answer.
 
@@ -99,10 +99,6 @@ Highlights where advisors agree and where opinions differ.
 ### Actionable Guidance
 
 Provides practical next steps rather than generic advice.
-
-### Confidence Scoring
-
-Assigns a confidence score to help evaluate recommendation strength.
 
 ### Memory Support
 
@@ -363,7 +359,10 @@ http://localhost:5173
 
 ### Final Recommendation
 
-Add screenshot here.
+<img width="1449" height="820" alt="image" src="https://github.com/user-attachments/assets/9412116c-2790-4113-893d-de1afe9f7c19" />
+
+<img width="1448" height="820" alt="image" src="https://github.com/user-attachments/assets/b0afe65c-697f-45e1-b647-e81d6876a14b" />
+
 
 ---
 
