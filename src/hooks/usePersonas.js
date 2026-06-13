@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiFetch } from '../lib/api';
 
 export default function usePersonas() {
   const [personas, setPersonas] = useState([]);
@@ -8,11 +9,7 @@ export default function usePersonas() {
   useEffect(() => {
     let cancelled = false;
 
-    fetch('/api/personas')
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to load advisors');
-        return res.json();
-      })
+    apiFetch('/api/personas')
       .then((data) => {
         if (!cancelled) setPersonas(data);
       })

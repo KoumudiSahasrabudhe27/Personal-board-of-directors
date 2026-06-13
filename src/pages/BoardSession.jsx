@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import usePersonas from '../hooks/usePersonas';
+import { apiFetch } from '../lib/api';
 import QuestionInput from '../components/QuestionInput';
 import PersonaCard from '../components/PersonaCard';
 import ModeratorPanel from '../components/ModeratorPanel';
@@ -29,14 +30,11 @@ const BoardSession = ({ onBack }) => {
     setIsLoadingPersonas(true);
 
     try {
-      const res = await fetch('/api/board', {
+      const data = await apiFetch('/api/board', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: q })
       });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Board request failed');
 
       setResponses(data.responses);
       setMemoriesUsed(data.memoriesUsed || []);

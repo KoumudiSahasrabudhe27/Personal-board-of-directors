@@ -1,45 +1,48 @@
 import json
+import logging
 
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
 load_dotenv()
 
-from backend.board import ask_persona, moderate_board, run_board
+from backend.board import get_advisor_perspective, run_board_of_directors, run_board_session
 from backend.foundry_iq import format_memory_context, list_decisions, save_decision, search_memory
-from backend.personas import PERSONAS
+from backend.logging_config import configure_logging
+from backend.personas import ADVISORS
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 mcp = FastMCP("personal-board-of-directors")
-PERSONA_IDS = [p["id"] for p in PERSONAS]
+PERSONA_IDS = [persona["id"] for persona in ADVISORS]
 
 
 @mcp.tool()
 def run_board_tool(question: str) -> str:
-    """Run the full Personal Board of Directors: retrieve Foundry IQ memory, 6 advisors respond in parallel, Moderator synthesizes one verdict, session saved to Foundry IQ."""
-    return json.dumps(run_board(question), indent=2)
+    """Run the full Personal Board of Directors with Foundry IQ memory and structured analysis."""
+    logger.info("MCP run_board_tool invoked")
+    session = run_board_session(question)
+    return json.dumps(session.model_dump(), indent=2)
+
+
+@mcp.tool()
+def analyze_tool(question: str) -> str:
+    """Run board-of-directors analysis without saving to Foundry IQ."""
+    analysis = run_board_of_directors(question)
+    return json.dumps(analysis.model_dump(), indent=2)
 
 
 @mcp.tool()
 def ask_persona_tool(persona: str, question: str, include_memory: bool = True) -> str:
-    """Ask one board advisor (CEO, Investor, Engineer, Psychologist, Mentor, Friend). Uses Foundry IQ for past decision context."""
+    """Ask one board advisor using the unified board analysis."""
     if persona not in PERSONA_IDS:
         raise ValueError(f"Unknown persona: {persona}. Choose from {', '.join(PERSONA_IDS)}")
 
     memories = search_memory(question, 3) if include_memory else []
     memory_context = format_memory_context(memories) if include_memory else ""
-    result = ask_persona(persona, question, memory_context)
+    result = get_advisor_perspective(persona, question, memory_context=memory_context)
     return json.dumps({**result, "memoriesUsed": memories}, indent=2)
-
-
-@mcp.tool()
-def moderate_board_tool(
-    question: str, responses: dict[str, str], include_memory: bool = True
-) -> str:
-    """Moderator synthesizes six advisor responses into one balanced recommendation."""
-    memories = search_memory(question, 3) if include_memory else []
-    memory_context = format_memory_context(memories) if include_memory else ""
-    verdict = moderate_board(question, responses, memory_context)
-    return json.dumps({"verdict": verdict, "memoriesUsed": memories}, indent=2)
 
 
 @mcp.tool()

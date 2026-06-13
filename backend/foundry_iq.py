@@ -1,7 +1,9 @@
+import logging
 import os
 import re
 import uuid
 from datetime import datetime, timezone
+from typing import Any
 
 from azure.core.credentials import AzureKeyCredential
 from azure.identity import DefaultAzureCredential
@@ -12,11 +14,12 @@ from azure.search.documents.knowledgebases.models import (
     KnowledgeRetrievalMinimalReasoningEffort,
 )
 
-INDEX_NAME = os.environ.get("BOARD_INDEX_NAME", "board-decisions")
-KB_NAME = os.environ.get("KNOWLEDGE_BASE_NAME", "board-decisions-kb")
+from backend.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 
-def _get_credential():
+def _get_credential() -> AzureKeyCredential | DefaultAzureCredential:
     api_key = os.environ.get("SEARCH_API_KEY")
     if api_key:
         return AzureKeyCredential(api_key)
@@ -31,16 +34,16 @@ def _search_endpoint() -> str:
 
 
 def is_foundry_iq_configured() -> bool:
-    return bool(os.environ.get("SEARCH_ENDPOINT") and os.environ.get("KNOWLEDGE_BASE_NAME"))
+    return get_settings().foundry_iq_configured
 
 
 def _format_session_document(
     question: str,
-    responses: dict,
+    responses: dict[str, str],
     verdict: str,
     doc_id: str | None = None,
     timestamp: str | None = None,
-) -> dict:
+) -> dict[str, str]:
     advisor_block = "\n".join(f"{pid}: {text}" for pid, text in (responses or {}).items())
     ts = timestamp or datetime.now(timezone.utc).isoformat()
 
@@ -70,7 +73,7 @@ def _extract_verdict(content: str) -> str:
     return content[:200]
 
 
-def _reference_to_memory(ref, index: int) -> dict:
+def _reference_to_memory(ref: Any, index: int) -> dict[str, Any]:
     doc = getattr(ref, "source_data", None) or getattr(ref, "content", None) or ref
     if hasattr(doc, "as_dict"):
         doc = doc.as_dict()
@@ -87,15 +90,15 @@ def _reference_to_memory(ref, index: int) -> dict:
     }
 
 
-def format_memory_context(memories: list[dict]) -> str:
+def format_memory_context(memories: list[dict[str, Any]]) -> str:
     if not memories:
         return ""
 
-    blocks = []
+    blocks: list[str] = []
     for i, memory in enumerate(memories):
         date_suffix = ""
         if memory.get("timestamp"):
-            date_suffix = f" — {memory['timestamp'][:10]}"
+            date_suffix = f" — {str(memory['timestamp'])[:10]}"
         blocks.append(
             f"[Past decision {i + 1}{date_suffix}]\n"
             f"Question: {memory['question']}\n"
@@ -105,13 +108,18 @@ def format_memory_context(memories: list[dict]) -> str:
     return "\n\nRelevant past decisions from Foundry IQ memory:\n" + "\n\n".join(blocks)
 
 
-def search_memory(question: str, limit: int = 3) -> list[dict]:
+def search_memory(question: str, limit: int = 3) -> list[dict[str, Any]]:
     if not is_foundry_iq_configured():
+        logger.debug("Foundry IQ not configured — skipping memory search")
         return []
 
+    settings = get_settings()
+    kb_name = settings.knowledge_base_name or "board-decisions-kb"
+
+    logger.info("Searching Foundry IQ memory (limit=%d)", limit)
     client = KnowledgeBaseRetrievalClient(
         endpoint=_search_endpoint(),
-        knowledge_base_name=KB_NAME,
+        knowledge_base_name=kb_name,
         credential=_get_credential(),
     )
 
@@ -131,31 +139,41 @@ def search_memory(question: str, limit: int = 3) -> list[dict]:
 
     result = client.retrieve(retrieval_request=request)
     references = getattr(result, "references", None) or []
-    return [_reference_to_memory(ref, i) for i, ref in enumerate(references[:limit])]
+    memories = [_reference_to_memory(ref, i) for i, ref in enumerate(references[:limit])]
+    logger.info("Found %d memory references", len(memories))
+    return memories
 
 
-def save_decision(question: str, responses: dict, verdict: str) -> dict:
+def save_decision(
+    question: str,
+    responses: dict[str, str],
+    verdict: str,
+) -> dict[str, Any]:
     doc = _format_session_document(question, responses, verdict)
 
     if not os.environ.get("SEARCH_ENDPOINT"):
+        logger.warning("Foundry IQ not configured — decision not saved")
         return {"id": doc["id"], "saved": False, "reason": "Foundry IQ not configured"}
 
+    settings = get_settings()
     client = SearchClient(
         endpoint=_search_endpoint(),
-        index_name=INDEX_NAME,
+        index_name=settings.board_index_name,
         credential=_get_credential(),
     )
     client.upload_documents([doc])
+    logger.info("Saved decision to Foundry IQ (id=%s)", doc["id"])
     return {"id": doc["id"], "saved": True, "timestamp": doc["timestamp"]}
 
 
-def list_decisions(limit: int = 10) -> list[dict]:
+def list_decisions(limit: int = 10) -> list[dict[str, Any]]:
     if not os.environ.get("SEARCH_ENDPOINT"):
         return []
 
+    settings = get_settings()
     client = SearchClient(
         endpoint=_search_endpoint(),
-        index_name=INDEX_NAME,
+        index_name=settings.board_index_name,
         credential=_get_credential(),
     )
 
